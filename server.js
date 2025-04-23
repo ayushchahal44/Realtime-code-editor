@@ -63,5 +63,10 @@ io.on('connection', (socket) => {
     });
 });
 
+app.get('/loaderio-a1aacedfd236ed06d764169202548e3a.txt', (req, res) => {
+  res.send('loaderio-a1aacedfd236ed06d764169202548e3a'); // just paste the exact token without .txt
+});
+
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
