@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    image: ${DOCKER_REGISTRY}/realtime-editor:${TAG:-latest}
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/realtime-editor
+    networks:
+      - app-network
+    command: npm server.js
+
+  mongodb:
+    image: mongo:latest
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  mongodb_data:
+    driver: local 
