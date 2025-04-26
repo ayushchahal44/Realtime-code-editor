@@ -16,16 +16,16 @@ pipeline {
         
         stage('Build and Test') {
             steps {
-                sh 'npm ci'
-                sh 'npm test'
-                sh 'npm run build'
+                bat 'npm ci'
+                bat 'npm test'
+                bat 'npm run build'
             }
         }
         
         stage('Build Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-                    sh """
+                    bat """
                         docker login ghcr.io -u ${GITHUB_USER} -p ${GITHUB_TOKEN}
                         docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${env.BUILD_NUMBER} .
                         docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest .
@@ -34,12 +34,12 @@ pipeline {
             }
         }
         
-        stage('Push Docker Image') {
+        stage('Pubat Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
-                    sh """
-                        docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${env.BUILD_NUMBER}
-                        docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest
+                    bat """
+                        docker pubat ${DOCKER_REGISTRY}/${IMAGE_NAME}:${env.BUILD_NUMBER}
+                        docker pubat ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest
                     """
                 }
             }
@@ -47,10 +47,10 @@ pipeline {
         
         stage('Deploy to Docker Swarm') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'docker-swarm-credentials', keyFileVariable: 'SSH_KEY')]) {
-                    sh """
-                        chmod 600 ${SSH_KEY}
-                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no root@${DOCKER_SWARM_HOST} \
+                withCredentials([sbatUserPrivateKey(credentialsId: 'docker-swarm-credentials', keyFileVariable: 'Sbat_KEY')]) {
+                    bat """
+                        chmod 600 ${Sbat_KEY}
+                        sbat -i ${Sbat_KEY} -o StrictHostKeyChecking=no root@${DOCKER_SWARM_HOST} \
                         'docker stack deploy -c docker-stack.yml realtime-editor'
                     """
                 }
@@ -61,7 +61,7 @@ pipeline {
     post {
         always {
             cleanWs()
-            sh 'docker logout ghcr.io'
+            bat 'docker logout ghcr.io'
         }
         success {
             echo 'Pipeline completed successfully!'
